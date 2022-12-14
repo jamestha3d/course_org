@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+
+{% block main %}
+<div>
+    {% for course in courses %}
+    <p>{{course['code']}}</p>
+    <p>{{course['title']}}</p>
+    <p>{{course['info']}}</p>
+    {% endfor %}
+</div>
+
+<div>
+    {% for student in students %}
+    <p>{{student['created']}}</p>
+    <p>{{student['username']}}</p>
+    <p>{{student['is_admin']}}</p>
+    {% endfor %}
+</div>
+{% endblock %}
