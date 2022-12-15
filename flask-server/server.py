@@ -90,5 +90,32 @@ def login():
 def members():
     return {"members": ["Member1", "Member2", "Member3"]}
 
+@app.route("/details/<string:info>")
+def details(info):
+    return "working"
+
+@app.route('/create', methods=['GET', 'POST'])
+def create():
+    if request.method == 'POST':
+        #check if new course or coursework
+        if request.form.get('course'):
+            code = request.form.get('code')
+            title = request.form.get('title')
+            info = request.form.get('info')
+            db = get_db_connection()
+            db.execute("INSERT INTO courses (code, title, info) VALUES (?, ?, ?)", (code, title, info))
+            db.commit()
+            return {"status": "New course registered successfully"}
+        else:
+            title = request.form.get('title')
+            content = request.form.get('content')
+            due = request.form.get('due')
+            course_type = request.form.get('course_type')
+            course_id = request.form.get('coruse_id')
+    else:
+        #return create page
+        return f"create page here"
+
+
 if __name__ == "__main__":
     app.run(debug=True)
