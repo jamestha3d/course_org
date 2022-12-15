@@ -1,13 +1,10 @@
 import os
 import sqlite3
 from helpers import error
-#import requests
 from werkzeug.security import check_password_hash, generate_password_hash
 from flask import Flask, session, render_template, request, redirect, jsonify
 from flask_session import Session
-#from flask_sqlalchemy import SQLAlchemy
-# from sqlalchemy import create_engine
-# from sqlalchemy.orm import scoped_session, sessionmaker
+
 
 SESSION_TYPE = 'filesystem'
 
@@ -21,6 +18,7 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row
     return conn
 
+
 @app.route('/')
 def index():
     db = get_db_connection()
@@ -28,6 +26,7 @@ def index():
     students = db.execute("SELECT * FROM users").fetchall()
     db.close()
     return render_template("index.html", courses=courses, students=students)
+
 
 @app.route('/register', methods=['GET', 'POST'])
 def  register():
@@ -49,8 +48,6 @@ def  register():
             db.close()
             return error('username already taken', 403)
 
-            #return render_template('error.html', rows=rows)
-
         password = generate_password_hash(request.form.get("password"))
         db.execute("INSERT INTO users (username, password_hash) VALUES (?, ?)", (username, password))
         db.commit()
@@ -59,12 +56,36 @@ def  register():
         session["user_id"] = rows.fetchone()["id"]
         session["user"] = username
         db.close()
-        # Redirect user to home page
         return f"user with ID {session['user_id']} registered and logged in"
     else:
         return render_template("register.html")
 
-# Members API Route
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    session.clear()
+    if request.method == 'POST':
+        username = request.form.get("username")
+        password = request.form.get("password")
+        if not username:
+            return error("must provide username", 403)
+        if not password:
+            return error("must provide password", 403)
+        username = username.lower()
+        db = get_db_connection()
+        rows = db.execute('SELECT * FROM users WHERE username = (?)', (username,))
+        hash = rows.fetchone()["password_hash"]
+        if hash != generate_password_hash(password):
+            db.close()
+            return error('invalid username or password', 403)
+        session["user_id"] = rows.fetchone()["id"]
+        session["user"] = username
+        db.close()
+        return f"user with ID {session['user_id']} registered and logged in"
+    else:
+        return render_template('login.html')
+
+
 @app.route("/members", methods=['GET'])
 def members():
     return {"members": ["Member1", "Member2", "Member3"]}
