@@ -112,10 +112,32 @@ def create():
             due = request.form.get('due')
             course_type = request.form.get('course_type')
             course_id = request.form.get('coruse_id')
+            return render_template('error.html', content, due, course_type, course_id)
     else:
         #return create page
         return f"create page here"
 
+@app.route("/logout")
+def logout():
+	session.clear()
+	return redirect("/")
+
+@app.route("/search", methods = ["GET", "POST"])
+def search():
+	if session.get("user") is None:
+		return render_template("login.html")
+	if request.method == "POST":
+		entry = request.form.get("search")
+		entry_lower = entry.lower()
+		entry_upper = entry.capitalize()
+		if not entry:
+			return "enter a search term"
+		#perform database query with entry
+		results= db.execute("SELECT isbn, author, title, year FROM books WHERE isbn LIKE :entry OR isbn LIKE :entry2 OR author LIKE :entry OR author LIKE :entry2 OR title LIKE :entry  OR title LIKE :entry2", {"entry": '%' +entry_lower+ '%', "entry2": '%' +entry_upper+ '%'}).fetchall()
+		return render_template("results.html", results=results)
+	else:
+		return render_template("index.html")
+	#return database results to "/"
 
 if __name__ == "__main__":
     app.run(debug=True)
